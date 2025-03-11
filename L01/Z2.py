@@ -1,22 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-PLIK = "./ekg1.txt"
-FS = 1000
-XSCALE = 1
-YSCALE = 1
-BEGIN = 1000
-END = 2000
-RANGE = 12
-
 # Define parameters
 fs = 1000  # Sampling frequency (Hz)
 T = 65536 / fs  # Duration (s)
-t = np.linspace(0, T, 65536, endpoint=False)  # Time vector
+t = np.linspace(0, T, 65536, endpoint=False) #Set endpoint to true/Time vector
 
 # 1. Generate a 50 Hz sinusoidal signal
 freq1 = 50  # Frequency in Hz
 signal1 = np.sin(2 * np.pi * freq1 * t)
+print(signal1)
 
 # 2. Compute and plot the Fourier Transform
 fft_signal1 = np.fft.fft(signal1)
