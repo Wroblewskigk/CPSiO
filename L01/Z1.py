@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import numpy as np
 
 PLIK = "./ekg1.txt"
 FS = 1000
@@ -9,8 +8,7 @@ BEGIN = 1000
 END = 2000
 RANGE = 12
 
-# Z1
-ekg1 = []  # Store all rows
+ekg1 = []
 with open(PLIK, "r") as file:
     for line in file:
         numbers = list(map(int, line.split()))  # Convert split strings into integers
