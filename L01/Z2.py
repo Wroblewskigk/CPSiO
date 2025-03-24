@@ -1,8 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from L01.Z4 import frequencyBins
-
 # Częstotliwość próbkowania (Hz)
 fs = 1000
 # Czas trwania sygnału (s)
