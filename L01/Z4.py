@@ -11,6 +11,8 @@ lowerBound = 5
 # Ograniczenie górne filtru dolnoprzepustowego [Hz]
 upperBound = 60
 
+#ZADANIE1###############################################################################################################
+
 # Wczytanie pliku z szumami
 filename = "ekg_noise.txt"
 noiseData = np.loadtxt(filename)
@@ -19,7 +21,6 @@ time = noiseData[:, 0]
 # Druga kolumna pliku
 signalValues = noiseData[:, 1]
 
-# 1. Wykres oryginalnego sygnału
 plt.plot(time, signalValues, label="Sygnał EKG z zakłóceniami")
 plt.xlabel("Czas [s]")
 plt.ylabel("Amplituda")
@@ -27,10 +28,10 @@ plt.title("Sygnał EKG z zakłóceniami")
 plt.grid()
 plt.show()
 
-# 1.1 Widmo oryginalnego sygnału
+#ZADANIE2###############################################################################################################
+
 # N - Ilość próbek w sygnale signalValues
 N = len(signalValues)
-# Ang. frequency bins <- Jak się to tłumaczy na polski?
 frequencyBins = np.fft.fftfreq(N, 1 / fs)
 # X - Wyliczona szybka transformata Fouriera
 X = fft(signalValues)
@@ -49,7 +50,6 @@ plt.title("Widmo amplitudowe sygnału EKG przed filtracją")
 plt.grid()
 plt.show()
 
-# 2. Filtr dolnoprzepustowy Butterwortha
 def butterworthLowpassFilter(data, cutoffFrequency, order=4):
     nyquistFrequency = 0.5 * fs
     # Znormalizowana częstotliwość odcinana przez filter
@@ -88,7 +88,8 @@ plt.show()
 # sprawdzania poprawności kodu
 print(f'Min: {np.min(signalValues)}, Max: {np.max(signalValues)}')
 
-# 3. Filtr górnoprzepustowy Butterwortha
+#ZADANIE3###############################################################################################################
+
 def butterworthHighpassFilter(data, cutoffFrequency, order=4):
     nyquistFrequency = 0.5 * fs
     normalizedCutoffFrequency = cutoffFrequency / nyquistFrequency
@@ -131,7 +132,7 @@ plt.legend()
 plt.grid()
 plt.show()
 
-# 4. Różnica między sygnałami przed i po filtracji
+# Różnica między sygnałami przed i po filtracji
 diff = signalValues - signalAfterHighpassFilter
 
 plt.figure(figsize=(12, 4))
