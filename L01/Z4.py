@@ -38,80 +38,93 @@ plt.title("Widmo amplitudowe sygnału EKG przed filtracją")
 plt.grid()
 plt.show()
 
-# # 2. Filtr dolnoprzepustowy Butterwortha
-# def butter_lowpass_filter(data, cutoff, fs, order=4):
-#     nyq = 0.5 * fs  # Częstotliwość Nyquista
-#     normal_cutoff = cutoff / nyq
-#     b, a = butter(order, normal_cutoff, btype='low', analog=False)
-#     return filtfilt(b, a, data)
-#
-# signal_lp = butter_lowpass_filter(signal, highcut, fs)
-#
-# # Wykres sygnału po filtrze dolnoprzepustowym
-# plt.figure(figsize=(12, 4))
-# plt.plot(time, signal, label="Oryginalny sygnał")
-# plt.plot(time, signal_lp, label="Po filtrze LP (60 Hz)", linestyle="dashed")
-# plt.xlabel("Czas (s)")
-# plt.ylabel("Amplituda")
-# plt.title("Sygnał po filtracji dolnoprzepustowej (60 Hz)")
-# plt.legend()
-# plt.grid()
-# plt.show()
-#
-# # Widmo sygnału po filtracji LP
-# X_lp = fft(signal_lp)
-# X_lp_magnitude = np.abs(X_lp)[:N//2]
-#
-# plt.figure(figsize=(12, 4))
-# plt.plot(freqs_half, X_lp_magnitude, label="Widmo po LP (60 Hz)")
-# plt.xlabel("Częstotliwość (Hz)")
-# plt.ylabel("Amplituda")
-# plt.title("Widmo sygnału po filtracji dolnoprzepustowej (60 Hz)")
-# plt.legend()
-# plt.grid()
-# plt.show()
-#
-# # 3. Filtr górnoprzepustowy Butterwortha
-# def butter_highpass_filter(data, cutoff, fs, order=4):
-#     nyq = 0.5 * fs
-#     normal_cutoff = cutoff / nyq
-#     b, a = butter(order, normal_cutoff, btype='high', analog=False)
-#     return filtfilt(b, a, data)
-#
-# signal_bp = butter_highpass_filter(signal_lp, lowcut, fs)
-#
-# # Wykres sygnału po filtrze pasmowym (5-60 Hz)
-# plt.figure(figsize=(12, 4))
-# plt.plot(time, signal, label="Oryginalny sygnał")
-# plt.plot(time, signal_bp, label="Po filtrze BP (5-60 Hz)", linestyle="dashed")
-# plt.xlabel("Czas (s)")
-# plt.ylabel("Amplituda")
-# plt.title("Sygnał po filtracji pasmowej (5-60 Hz)")
-# plt.legend()
-# plt.grid()
-# plt.show()
-#
-# # Widmo sygnału po filtracji BP
-# X_bp = fft(signal_bp)
-# X_bp_magnitude = np.abs(X_bp)[:N//2]
-#
-# plt.figure(figsize=(12, 4))
-# plt.plot(freqs_half, X_bp_magnitude, label="Widmo po BP (5-60 Hz)")
-# plt.xlabel("Częstotliwość (Hz)")
-# plt.ylabel("Amplituda")
-# plt.title("Widmo sygnału po filtracji pasmowej (5-60 Hz)")
-# plt.legend()
-# plt.grid()
-# plt.show()
-#
-# # 4. Różnica między sygnałami przed i po filtracji
-# diff = signal - signal_bp
-#
-# plt.figure(figsize=(12, 4))
-# plt.plot(time, diff, label="Różnica przed i po filtracji")
-# plt.xlabel("Czas (s)")
-# plt.ylabel("Amplituda")
-# plt.title("Różnica sygnału przed i po filtracji")
-# plt.legend()
-# plt.grid()
-# plt.show()
+# 2. Filtr dolnoprzepustowy Butterwortha
+def butter_lowpass_filter(data, cutoff, fs, order=4):
+    nyq = 0.5 * fs  # Częstotliwość Nyquista
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return filtfilt(b, a, data)
+
+signal_lp = butter_lowpass_filter(signal, highcut, fs)
+
+# Wykres sygnału po filtrze dolnoprzepustowym
+plt.figure(figsize=(12, 4))
+plt.plot(time, signal, label="Oryginalny sygnał")
+plt.plot(time, signal_lp, label="Po filtrze LP (60 Hz)") #linestyle="dashed"
+plt.xlabel("Czas (s)")
+plt.ylabel("Amplituda")
+plt.title("Sygnał po filtracji dolnoprzepustowej (60 Hz)")
+plt.legend()
+plt.grid()
+plt.show()
+
+# Widmo sygnału po filtracji LP
+X_lp = fft(signal_lp)
+X_lp_magnitude = np.abs(X_lp)[:N//2]
+
+plt.figure(figsize=(12, 4))
+plt.plot(freqs_half, X_magnitude, label="Widmo przed filtracją", alpha=0.7)
+plt.plot(freqs_half, X_lp_magnitude, label="Widmo po LP (60 Hz)", linestyle="dashed")
+plt.xlabel("Częstotliwość (Hz)")
+plt.ylabel("Amplituda")
+plt.title("Porównanie widm przed i po filtracji LP")
+plt.legend()
+plt.grid()
+plt.show()
+
+print(f'Min: {np.min(signal)}, Max: {np.max(signal)}')
+
+# 3. Filtr górnoprzepustowy Butterwortha
+def butter_highpass_filter(data, cutoff, fs, order=4):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='high', analog=False)
+    return filtfilt(b, a, data)
+
+signal_bp = butter_highpass_filter(signal_lp, lowcut, fs)
+
+# Wykres sygnału po filtrze pasmowym (5-60 Hz)
+plt.figure(figsize=(12, 4))
+plt.plot(time, signal, label="Oryginalny sygnał")
+plt.plot(time, signal_bp, label="Po filtrze BP (5-60 Hz)", linestyle="dashed")
+plt.xlabel("Czas (s)")
+plt.ylabel("Amplituda")
+plt.title("Sygnał po filtracji pasmowej (5-60 Hz)")
+plt.legend()
+plt.grid()
+plt.show()
+
+# Widmo sygnału po filtracji BP
+X_bp = fft(signal_bp)
+X_bp_magnitude = np.abs(X_bp)[:N//2]
+
+plt.figure(figsize=(12, 4))
+plt.plot(freqs_half, X_magnitude, label="Widmo przed filtracją", color="red", alpha=0.6)
+plt.plot(freqs_half, X_bp_magnitude, label="Widmo po BP (5-60 Hz)", linestyle="dashed", color="blue")
+plt.xlabel("Częstotliwość (Hz)")
+plt.ylabel("Amplituda")
+plt.title("Porównanie widm przed i po filtracji pasmowej (5-60 Hz)")
+plt.legend()
+plt.grid()
+plt.show()
+
+plt.figure(figsize=(12, 4))
+plt.plot(freqs_half, X_bp_magnitude, label="Widmo po BP (5-60 Hz)")
+plt.xlabel("Częstotliwość (Hz)")
+plt.ylabel("Amplituda")
+plt.title("Widmo sygnału po filtracji pasmowej (5-60 Hz)")
+plt.legend()
+plt.grid()
+plt.show()
+
+# 4. Różnica między sygnałami przed i po filtracji
+diff = signal - signal_bp
+
+plt.figure(figsize=(12, 4))
+plt.plot(time, diff, label="Różnica przed i po filtracji")
+plt.xlabel("Czas (s)")
+plt.ylabel("Amplituda")
+plt.title("Różnica sygnału przed i po filtracji")
+plt.legend()
+plt.grid()
+plt.show()
