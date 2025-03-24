@@ -1,79 +1,94 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Definiowanie parametrów
-fs = 1000  # Częstotliwość próbkowania (Hz)
-T = 65536 / fs  # Czas trwania sygnału (s)
-t = np.linspace(0, T, 65536, endpoint=False)  # Wektor czasowy
+from L01.Z4 import frequencyBins
 
-# 1. Generowanie sygnału sinusoidalnego o częstotliwości 50 Hz
-freq1 = 50  # Częstotliwość w Hz
-signal1 = np.sin(2 * np.pi * freq1 * t)
-print(signal1)
+# Częstotliwość próbkowania (Hz)
+fs = 1000
+# Czas trwania sygnału (s)
+T = 65536 / fs
+# Wektor czasowy
+t = np.linspace(0, T, 65536, endpoint=False)
 
-# 2. Obliczanie i rysowanie transformaty Fouriera
-fft_signal1 = np.fft.fft(signal1)
-frequencies = np.fft.fftfreq(len(signal1), 1 / fs)
-amplitude_spectrum1 = np.abs(fft_signal1) / len(signal1)
+#ZADANIE1###############################################################################################################
+
+# Generowanie sygnału sinusoidalnego o częstotliwości 50 Hz
+sinFrequency50Hz = 50  # Częstotliwość w Hz
+sinSignal50Hz = np.sin(2 * np.pi * sinFrequency50Hz * t)
+print(sinSignal50Hz)
+
+#ZADANIE2###############################################################################################################
+
+# Obliczanie i rysowanie transformaty Fouriera
+sinSignalFFT = np.fft.fft(sinSignal50Hz)
+frequencies = np.fft.fftfreq(len(sinSignal50Hz), 1 / fs)
+sinSignalAmplitudeSpectrum = np.abs(sinSignalFFT) / len(sinSignal50Hz)
 
 plt.figure(figsize=(10, 5))
-plt.plot(frequencies[:len(frequencies) // 2], amplitude_spectrum1[:len(frequencies) // 2])
+plt.plot(frequencies[:len(frequencies) // 2], sinSignalAmplitudeSpectrum[:len(frequencies) // 2])
 plt.title("Widmo amplitudowe sygnału 50 Hz")
 plt.xlabel("Częstotliwość (Hz)")
 plt.ylabel("Amplituda")
 plt.grid()
 plt.show()
 
-# 3. Generowanie sygnału mieszanego z 50 Hz i 60 Hz
-freq2 = 60  # Druga częstotliwość w Hz
-signal2 = np.sin(2 * np.pi * freq2 * t)
-mixed_signal = signal1 + signal2
+#ZADANIE3###############################################################################################################
+
+# Generowanie sygnału mieszanego z 50 Hz i 60 Hz
+sinFrequency60Hz = 60
+sinSignal60Hz = np.sin(2 * np.pi * sinFrequency60Hz * t)
+mixedSinSignal = sinSignal50Hz + sinSignal60Hz
 
 # Obliczanie i rysowanie transformaty Fouriera sygnału mieszanego
-fft_mixed = np.fft.fft(mixed_signal)
-amplitude_spectrum_mixed = np.abs(fft_mixed) / len(mixed_signal)
+mixedSinSignalFFT = np.fft.fft(mixedSinSignal)
+mixedSinSignalAmplitudeSpectrum = np.abs(mixedSinSignalFFT) / len(mixedSinSignal)
 
 plt.figure(figsize=(10, 5))
-plt.plot(frequencies[:len(frequencies) // 2], amplitude_spectrum_mixed[:len(frequencies) // 2])
+plt.plot(frequencies[:len(frequencies) // 2], mixedSinSignalAmplitudeSpectrum[:len(frequencies) // 2])
 plt.title("Widmo amplitudowe sygnału mieszanego 50 Hz i 60 Hz")
 plt.xlabel("Częstotliwość (Hz)")
 plt.ylabel("Amplituda")
 plt.grid()
 plt.show()
 
-# 4. Eksperymentowanie z różnymi częstotliwościami próbkowania
-sampling_rates = [500, 2000, 5000]  # Różne częstotliwości próbkowania
-for fs_new in sampling_rates:
-    T_new = 65536 / fs_new  # Nowy czas trwania
-    t_new = np.linspace(0, T_new, 65536, endpoint=False)
-    signal_new = np.sin(2 * np.pi * freq1 * t_new) + np.sin(2 * np.pi * freq2 * t_new)
+#ZADANIE4###############################################################################################################
 
-    fft_new = np.fft.fft(signal_new)
-    freq_new = np.fft.fftfreq(len(signal_new), 1 / fs_new)
-    amp_spec_new = np.abs(fft_new) / len(signal_new)
+# Eksperymentowanie z różnymi częstotliwościami próbkowania
+samplingRates = [500, 2000, 5000]
+for fsNew in samplingRates:
+    # Nowy czas trwania
+    TNew = 65536 / fsNew
+    tNew = np.linspace(0, TNew, 65536, endpoint=False)
+    signalNew = np.sin(2 * np.pi * sinFrequency50Hz * tNew) + np.sin(2 * np.pi * sinFrequency60Hz * tNew)
+
+    fftNew = np.fft.fft(signalNew)
+    frequencyNew = np.fft.fftfreq(len(signalNew), 1 / fsNew)
+    amplitudeSpectrumNew = np.abs(fftNew) / len(signalNew)
 
     plt.figure(figsize=(10, 5))
-    plt.plot(freq_new[:len(freq_new) // 2], amp_spec_new[:len(freq_new) // 2])
-    plt.title(f"Widmo amplitudowe (Częstotliwość próbkowania: {fs_new} Hz)")
+    plt.plot(frequencyNew[:len(frequencyNew) // 2], amplitudeSpectrumNew[:len(frequencyNew) // 2])
+    plt.title(f"Widmo amplitudowe (Częstotliwość próbkowania: {fsNew} Hz)")
     plt.xlabel("Częstotliwość (Hz)")
     plt.ylabel("Amplituda")
     plt.grid()
     plt.show()
 
-# 5. Obliczanie odwrotnej transformaty Fouriera i porównanie z oryginalnymi sygnałami
-reconstructed_signal1 = np.fft.ifft(fft_signal1).real
-reconstructed_mixed = np.fft.ifft(fft_mixed).real
+#ZADANIE5###############################################################################################################
+
+# Obliczanie odwrotnej transformaty Fouriera i porównanie z oryginalnymi sygnałami
+reconstructedSinSignal = np.fft.ifft(sinSignalFFT).real
+reconstructedMixedSinSignal = np.fft.ifft(mixedSinSignalFFT).real
 
 plt.figure(figsize=(10, 5))
-plt.plot(t[:1000], signal1[:1000], label="Oryginalny sygnał 50Hz")
-plt.plot(t[:1000], reconstructed_signal1[:1000], '--', label="Odtworzony sygnał 50Hz")
+plt.plot(t[:1000], sinSignal50Hz[:1000], label="Oryginalny sygnał 50Hz")
+plt.plot(t[:1000], reconstructedSinSignal[:1000], '--', label="Odtworzony sygnał 50Hz")
 plt.legend()
 plt.title("Porównanie oryginalnego i odtworzonego sygnału 50Hz")
 plt.show()
 
 plt.figure(figsize=(10, 5))
-plt.plot(t[:1000], mixed_signal[:1000], label="Oryginalny sygnał mieszany")
-plt.plot(t[:1000], reconstructed_mixed[:1000], '--', label="Odtworzony sygnał mieszany")
+plt.plot(t[:1000], mixedSinSignal[:1000], label="Oryginalny sygnał mieszany")
+plt.plot(t[:1000], reconstructedMixedSinSignal[:1000], '--', label="Odtworzony sygnał mieszany")
 plt.legend()
 plt.title("Porównanie oryginalnego i odtworzonego sygnału mieszanego")
 plt.show()
