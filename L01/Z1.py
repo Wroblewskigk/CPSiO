@@ -100,12 +100,12 @@ plotSignal(timeEKG1, signalEKG1, title="EKG1 - Wielokanałowy")
 plotSignal(timeEKG100, signalEKG100, title="EKG100 - Jednokanałowy")
 
 # Wizualizacja zadanego przez signalStart i signalEnd segmentu sygnału
-plotSignal(timeEKG1, signalEKG1, signalStart=1, signalEnd=3, title="EKG1", yMinValue=None, yMaxValue=None)
-plotSignal(timeEKG100, signalEKG100, signalStart=1, signalEnd=3, title="EKG100", yMinValue=None, yMaxValue=None)
+plotSignal(timeEKG1, signalEKG1, signalStart=1, signalEnd=2, title="EKG1 - Wielokanałowy", yMinValue=None, yMaxValue=None)
+plotSignal(timeEKG100, signalEKG100, signalStart=1, signalEnd=2, title="EKG100 - Jednokanałowy", yMinValue=None, yMaxValue=None)
 
 # Wizualizacja zadanego przez signalStart i signalEnd segmentu sygnałów wszystkich kanałów EKG1 na jednym wykresie
-plotAllSignal(timeEKG1, signalEKG1, signalStart=1, signalEnd=3, title="Wszystkie kanały sygnału EKG1", yMinValue=None, yMaxValue=None)
+plotAllSignal(timeEKG1, signalEKG1, signalStart=1, signalEnd=2, title="Wszystkie kanały sygnału EKG1", yMinValue=None, yMaxValue=None)
 
 # Zapis zadanych przez signalStart i signalEnd segmentów sygnałów do plików
-savePlotSegmentToTxt(timeEKG1, signalEKG1, signalStart=1, signalEnd=3, filename="segment_ekg1.txt", fmt="%d")
-savePlotSegmentToTxt(timeEKG100, signalEKG100, signalStart=1, signalEnd=3, filename="segment_ekg100.txt", fmt="%.7e")
+savePlotSegmentToTxt(timeEKG1, signalEKG1, signalStart=1, signalEnd=2, filename="segment_ekg1.txt", fmt="%d")
+savePlotSegmentToTxt(timeEKG100, signalEKG100, signalStart=1, signalEnd=2, filename="segment_ekg100.txt", fmt="%.7e")
