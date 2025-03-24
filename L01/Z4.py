@@ -52,7 +52,7 @@ plt.show()
 # 2. Filtr dolnoprzepustowy Butterwortha
 def butterworthLowpassFilter(data, cutoffFrequency, order=4):
     nyquistFrequency = 0.5 * fs
-    # Znormalizowana wartość odcinana przez filter
+    # Znormalizowana częstotliwość odcinana przez filter
     normalizedCutoffFrequency = cutoffFrequency / nyquistFrequency
     b, a = butter(order, normalizedCutoffFrequency, btype='low', analog=False)
     return filtfilt(b, a, data)
@@ -70,13 +70,13 @@ plt.legend()
 plt.grid()
 plt.show()
 
-# Widmo sygnału po filtracji LP
-X_lp = fft(signalAfterLowpassFilter)
-X_lp_magnitude = np.abs(X_lp)[:N//2]
+# Widmo sygnału po filtracji dolnoprzepustowej
+XAfterLowpassFilter = fft(signalAfterLowpassFilter)
+XMagnitudeAfterLowpassFilter = np.abs(XAfterLowpassFilter)[:N // 2]
 
 plt.figure(figsize=(12, 4))
 plt.plot(frequencyBinsPositiveHalf, XMagnitude, label="Widmo przed filtracją", alpha=0.7)
-plt.plot(frequencyBinsPositiveHalf, X_lp_magnitude, label="Widmo po LP (60 Hz)", linestyle="dashed")
+plt.plot(frequencyBinsPositiveHalf, XMagnitudeAfterLowpassFilter, label="Widmo po LP (60 Hz)", linestyle="dashed")
 plt.xlabel("Częstotliwość (Hz)")
 plt.ylabel("Amplituda")
 plt.title("Porównanie widm przed i po filtracji LP")
@@ -84,21 +84,23 @@ plt.legend()
 plt.grid()
 plt.show()
 
+# Wypisanie maksymalnej i minimalnej wartośći amplitudy w celach
+# sprawdzania poprawności kodu
 print(f'Min: {np.min(signalValues)}, Max: {np.max(signalValues)}')
 
 # 3. Filtr górnoprzepustowy Butterwortha
-def butter_highpass_filter(data, cutoff, order=4):
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
-    b, a = butter(order, normal_cutoff, btype='high', analog=False)
+def butterworthHighpassFilter(data, cutoffFrequency, order=4):
+    nyquistFrequency = 0.5 * fs
+    normalizedCutoffFrequency = cutoffFrequency / nyquistFrequency
+    b, a = butter(order, normalizedCutoffFrequency, btype='high', analog=False)
     return filtfilt(b, a, data)
 
-signal_bp = butter_highpass_filter(signalAfterLowpassFilter, lowerBound)
+signalAfterHighpassFilter = butterworthHighpassFilter(signalAfterLowpassFilter, lowerBound)
 
-# Wykres sygnału po filtrze pasmowym (5-60 Hz)
+# Wykres sygnału po filtrze pasmowym w zakresie od 5 do 60 Hz
 plt.figure(figsize=(12, 4))
 plt.plot(time, signalValues, label="Oryginalny sygnał")
-plt.plot(time, signal_bp, label="Po filtrze BP (5-60 Hz)", linestyle="dashed")
+plt.plot(time, signalAfterHighpassFilter, label="Po filtrze pasmowym (5-60 Hz)", linestyle="dashed")
 plt.xlabel("Czas (s)")
 plt.ylabel("Amplituda")
 plt.title("Sygnał po filtracji pasmowej (5-60 Hz)")
@@ -106,13 +108,13 @@ plt.legend()
 plt.grid()
 plt.show()
 
-# Widmo sygnału po filtracji BP
-X_bp = fft(signal_bp)
-X_bp_magnitude = np.abs(X_bp)[:N//2]
+# Widmo sygnału po filtracji pasmowej w zakresie od 5 do 60 Hz
+XAfterBandpassFilter = fft(signalAfterHighpassFilter)
+XMagnitudeAfterBandpassFilter = np.abs(XAfterBandpassFilter)[:N // 2]
 
 plt.figure(figsize=(12, 4))
 plt.plot(frequencyBinsPositiveHalf, XMagnitude, label="Widmo przed filtracją", color="red", alpha=0.6)
-plt.plot(frequencyBinsPositiveHalf, X_bp_magnitude, label="Widmo po BP (5-60 Hz)", linestyle="dashed", color="blue")
+plt.plot(frequencyBinsPositiveHalf, XMagnitudeAfterBandpassFilter, label="Widmo po filtracji pasmowej (5-60 Hz)", linestyle="dashed", color="blue")
 plt.xlabel("Częstotliwość (Hz)")
 plt.ylabel("Amplituda")
 plt.title("Porównanie widm przed i po filtracji pasmowej (5-60 Hz)")
@@ -121,7 +123,7 @@ plt.grid()
 plt.show()
 
 plt.figure(figsize=(12, 4))
-plt.plot(frequencyBinsPositiveHalf, X_bp_magnitude, label="Widmo po BP (5-60 Hz)")
+plt.plot(frequencyBinsPositiveHalf, XMagnitudeAfterBandpassFilter, label="Widmo po BP (5-60 Hz)")
 plt.xlabel("Częstotliwość (Hz)")
 plt.ylabel("Amplituda")
 plt.title("Widmo sygnału po filtracji pasmowej (5-60 Hz)")
@@ -130,7 +132,7 @@ plt.grid()
 plt.show()
 
 # 4. Różnica między sygnałami przed i po filtracji
-diff = signalValues - signal_bp
+diff = signalValues - signalAfterHighpassFilter
 
 plt.figure(figsize=(12, 4))
 plt.plot(time, diff, label="Różnica przed i po filtracji")
