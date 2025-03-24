@@ -1,25 +1,22 @@
 import matplotlib.pyplot as plt
 
-PLIK = "./ekg1.txt"
-FS = 1000
-XSCALE = 1
-YSCALE = 1
-BEGIN = 1000
-END = 2000
-RANGE = 12
+filename = "./ekg1.txt"
+fs = 1000
+begin = 1000
+end = 2000
 
 ekg1 = []
-with open(PLIK, "r") as file:
+with open(filename, "r") as file:
     for line in file:
-        numbers = list(map(int, line.split()))  # Convert split strings into integers
-        ekg1.append(numbers)  # Store the row
+        numbers = list(map(int, line.split()))
+        ekg1.append(numbers)
 
-ekg1 = ekg1[BEGIN:END]
-for columnIndex in range(0, 11):
-    ypoints = [row[columnIndex] for row in ekg1 if len(row) > columnIndex]
-    xpoints = list(range(len(ypoints)))
-    plt.plot(xpoints, ypoints)
+ekg1 = ekg1[begin:end]
+for columnIndex in range(0, 1):
+    yPoints = [row[columnIndex] for row in ekg1 if len(row) > columnIndex]
+    xPoints = list(range(len(yPoints)))
+    plt.plot(xPoints, yPoints)
     plt.xlabel("Fs [kHz]")
-    plt.ylabel("To w czym mierzymy EKG")
+    plt.ylabel("Amplituda")
     plt.title("Wykres sygnału EKG mierzony z częstotliwością 1kHz")
     plt.show()
