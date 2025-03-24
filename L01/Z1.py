@@ -1,110 +1,111 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def load_ecg(filename, fs):
+# Zmienne potrzebne do poprawnego działania programu
+fileEKG1 = "ekg1.txt"
+fileEKG100 = "ekg100.txt"
+fs1 = 1000
+fs100 = 360
+
+def loadSignal(filename, fs):
     data = np.loadtxt(filename)
+    # W przypadku sygnału jednokanałowego
     if data.ndim == 1:
         time = np.arange(len(data)) / fs
-        return time, data  # Pojedynczy kanał
+        return time, data
+    # W przypadku sygnału wielokanałowego
     else:
         time = np.arange(data.shape[0]) / fs
-        return time, data  # Wielokanałowy sygnał
+        return time, data
 
 
-def plot_ecg(time, signal, start=0, end=None, title="EKG", ymin=None, ymax=None):
-    if end is None:
-        end = time[-1]
-    mask = (time >= start) & (time <= end)
+def plotSignal(time, signal, signalStart=0, signalEnd=None, title="EKG", yMinValue=None, yMaxValue=None):
+    # Jeżeli nie sprecyzowano, do której sekundy wyświetlić sygnał: wyświetl go w całości
+    if signalEnd is None:
+        signalEnd = time[-1]
 
-    # Check if the signal is single-channel or multi-channel
+    # Tworzenie maski z zakresem pomiędzy signalStart i signalEnd
+    mask = (time >= signalStart) & (time <= signalEnd)
+    print(mask)
+
+    # Sprawdzanie, czy sygnał jest jedno, czy wielokanałowy
     if signal.ndim == 1:
-        n_channels = 1  # Single-channel
+        # Sygnał jednokanałowy
+        numberOfChannels = 1
     else:
-        n_channels = signal.shape[1]  # Multi-channel
+        # Sygnał wielokanałowy
+        numberOfChannels = signal.shape[1]
 
-    # Create a figure with subplots for multi-channel, or a single plot for single-channel
-    plt.figure(figsize=(12, 4 * n_channels))
+    plt.figure(figsize=(12, 4 * numberOfChannels))
 
-    if n_channels == 1:
-        # For single-channel signal, plot it on one plot
+    if numberOfChannels == 1:
         plt.subplot(1, 1, 1)
-        plt.plot(time[mask], signal[mask])  # Plot the single channel
+        plt.plot(time[mask], signal[mask])
         plt.xlabel("Czas (s)")
         plt.ylabel("Amplituda")
-        plt.title(f"{title} ({start}-{end} s)")
+        plt.title(f"{title} ({signalStart}-{signalEnd} s)")
         plt.grid()
-
-        if ymin is not None and ymax is not None:
-            plt.ylim(ymin, ymax)
+        if yMinValue is not None and yMaxValue is not None:
+            plt.ylim(yMinValue, yMaxValue)
     else:
-        # For multi-channel signal, plot each channel in a separate subplot
-        for i in range(n_channels):
-            plt.subplot(n_channels, 1, i + 1)  # One subplot for each channel
-            plt.plot(time[mask], signal[mask, i])  # Plot each channel
+        for i in range(numberOfChannels):
+            plt.subplot(numberOfChannels, 1, i + 1)
+            plt.plot(time[mask], signal[mask, i])
             plt.xlabel("Czas (s)")
             plt.ylabel(f"Amplituda (Lead {i + 1})")
-            plt.title(f"{title} ({start}-{end} s) - Lead {i + 1}")
+            plt.title(f"{title} ({signalStart}-{signalEnd} s) - Kanał {i + 1}")
             plt.grid()
-
-            if ymin is not None and ymax is not None:
-                plt.ylim(ymin, ymax)
+            if yMinValue is not None and yMaxValue is not None:
+                plt.ylim(yMinValue, yMaxValue)
 
     plt.tight_layout()
     plt.show()
 
 
-def plot_all_channels_on_one_plot(time, signal, start=0, end=None, title="EKG", ymin=None, ymax=None):
-    """Plot all channels of the multi-channel signal on one plot with optional Y-axis scaling."""
-    if end is None:
-        end = time[-1]
-    mask = (time >= start) & (time <= end)
+def plotAllSignal(time, signal, signalStart=0, signalEnd=None, title="EKG", yMinValue=None, yMaxValue=None):
+    # Jeżeli nie sprecyzowano, do której sekundy wyświetlić sygnał: wyświetl go w całości
+    if signalEnd is None:
+        signalEnd = time[-1]
+    # Tworzenie maski z zakresem pomiędzy signalStart i signalEnd
+    mask = (time >= signalStart) & (time <= signalEnd)
 
     plt.figure(figsize=(12, 6))
 
-    n_channels = signal.shape[1] if signal.ndim > 1 else 1
+    numberOfChannels = signal.shape[1] if signal.ndim > 1 else 1
 
-    # Plot all channels on the same plot
-    for i in range(n_channels):
-        plt.plot(time[mask], signal[mask, i], label=f"Lead {i + 1}" if n_channels > 1 else "Signal")
+    for i in range(numberOfChannels):
+        plt.plot(time[mask], signal[mask, i], label=f"Kanał {i + 1}" if numberOfChannels > 1 else "Signal")
 
     plt.xlabel("Czas (s)")
     plt.ylabel("Amplituda")
-    plt.title(f"{title} ({start}-{end} s) - Wszystkie kanały")
+    plt.title(f"{title} ({signalStart}-{signalEnd} s) - Wszystkie kanały")
     plt.grid()
 
-    # Apply Y-axis limits if specified
-    if ymin is not None and ymax is not None:
-        plt.ylim(ymin, ymax)
-
+    if yMinValue is not None and yMaxValue is not None:
+        plt.ylim(yMinValue, yMaxValue)
     plt.show()
 
-def save_segment(time, signal, start, end, filename, fmt):
-    mask = (time >= start) & (time <= end)
+def savePlotSegmentToTxt(time, signal, signalStart, signalEnd, filename, fmt):
+    # Tworzenie maski z zakresem pomiędzy signalStart i signalEnd
+    mask = (time >= signalStart) & (time <= signalEnd)
     segment = signal[mask]
     np.savetxt(filename, segment, fmt=fmt)
     print(f"Zapisano wycinek do {filename}")
 
-
-# Wczytanie plików
-ekg1_file = "ekg1.txt"
-ekg100_file = "ekg100.txt"
-fs1 = 1000
-fs100 = 360
-
-time1, signal1 = load_ecg(ekg1_file, fs1)
-time100, signal100 = load_ecg(ekg100_file, fs100)
+timeEKG1, signalEKG1 = loadSignal(fileEKG1, fs1)
+timeEKG100, signalEKG100 = loadSignal(fileEKG100, fs100)
 
 # Wizualizacja całego sygnału dla obu plików
-plot_ecg(time1, signal1, title="EKG1 - Wielokanałowy")
-plot_ecg(time100, signal100, title="EKG100 - Jednokanałowy")
+plotSignal(timeEKG1, signalEKG1, title="EKG1 - Wielokanałowy")
+plotSignal(timeEKG100, signalEKG100, title="EKG100 - Jednokanałowy")
 
-# Wizualizacja fragmentu (np. 1-3 sekundy)
-plot_ecg(time1, signal1, start=1, end=3, title="EKG1 - Fragment 1-3s", ymin=None, ymax=None)
-plot_ecg(time100, signal100, start=1, end=3, title="EKG100 - Fragment 1-3s", ymin=None, ymax=None)
+# Wizualizacja zadanego przez signalStart i signalEnd segmentu sygnału
+plotSignal(timeEKG1, signalEKG1, signalStart=1, signalEnd=3, title="EKG1", yMinValue=None, yMaxValue=None)
+plotSignal(timeEKG100, signalEKG100, signalStart=1, signalEnd=3, title="EKG100", yMinValue=None, yMaxValue=None)
 
-# Wizualizacja wszystkich kanałów EKG1 na jednym wykresie
-plot_all_channels_on_one_plot(time1, signal1, start=1, end=3, title="EKG1 - Wszystkie kanały", ymin=None, ymax=None)
+# Wizualizacja zadanego przez signalStart i signalEnd segmentu sygnałów wszystkich kanałów EKG1 na jednym wykresie
+plotAllSignal(timeEKG1, signalEKG1, signalStart=1, signalEnd=3, title="Wszystkie kanały sygnału EKG1", yMinValue=None, yMaxValue=None)
 
-# Zapis fragmentu do pliku
-save_segment(time1, signal1, start=1, end=3, filename="segment_ekg1.txt", fmt="%d")
-save_segment(time100, signal100, start=1, end=3, filename="segment_ekg100.txt", fmt="%.7e")
+# Zapis zadanych przez signalStart i signalEnd segmentów sygnałów do plików
+savePlotSegmentToTxt(timeEKG1, signalEKG1, signalStart=1, signalEnd=3, filename="segment_ekg1.txt", fmt="%d")
+savePlotSegmentToTxt(timeEKG100, signalEKG100, signalStart=1, signalEnd=3, filename="segment_ekg100.txt", fmt="%.7e")
