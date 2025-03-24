@@ -2,10 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import fft, ifft
 
-# Parametry
-fs = 360  # Częstotliwość próbkowania (Hz)
+# Częstotliwość próbkowania (Hz)
+fs = 360
 
-# Wczytanie pliku
+#ZADANIE1###############################################################################################################
+
 filename = "ekg100.txt"
 with open(filename, "r") as file:
     signal = np.array([float(line.strip()) for line in file])
@@ -13,7 +14,6 @@ with open(filename, "r") as file:
 # Oś czasu
 t = np.arange(len(signal)) / fs
 
-# 1. Wizualizacja sygnału
 plt.figure(figsize=(12, 4))
 plt.plot(t, signal, label="Sygnał EKG")
 plt.xlabel("Czas (s)")
@@ -23,16 +23,21 @@ plt.legend()
 plt.grid()
 plt.show()
 
-# 2. Dyskretna Transformata Fouriera (DFT)
+#ZADANIE2###############################################################################################################
+
+# N - Ilość próbek w sygnale signal
 N = len(signal)
-freqs = np.fft.fftfreq(N, 1/fs)  # Oś częstotliwości
-X = fft(signal)  # DFT
-X_magnitude = np.abs(X)[:N//2]  # Widmo amplitudowe (połowa widma)
-freqs_half = freqs[:N//2]  # Zakres [0, fs/2]
+# Oś częstotliwości
+frequencies = np.fft.fftfreq(N, 1 / fs)
+# Transformata Fouriera sygnału signal
+X = fft(signal)
+XMagnitude = np.abs(X)[:N // 2]  # Widmo amplitudowe (połowa widma)
+# Zakres [0, fs/2]
+positiveFrequencies = frequencies[:N // 2]
 
 # Wykres widma amplitudowego
 plt.figure(figsize=(12, 4))
-plt.plot(freqs_half, X_magnitude, label="Widmo amplitudowe")
+plt.plot(positiveFrequencies, XMagnitude, label="Widmo amplitudowe")
 plt.xlabel("Częstotliwość (Hz)")
 plt.ylabel("Amplituda")
 plt.title("Widmo amplitudowe sygnału EKG")
@@ -40,22 +45,24 @@ plt.legend()
 plt.grid()
 plt.show()
 
-# 3. Odwrotna DFT
-signal_reconstructed = np.real(ifft(X))  # Rekonstrukcja sygnału
+#ZADANIE3###############################################################################################################
 
-# Porównanie oryginału i odwrotnej DFT
+# Rekonstrukcja sygnału odwrotną transformatą Fouriera
+reconstructedSignal = np.real(ifft(X))
+
+# Porównanie sygnału oryginalnego i sygnału po odwrotnej transformacie Fouriera
 plt.figure(figsize=(12, 4))
 plt.plot(t, signal, label="Oryginalny sygnał")
-plt.plot(t, signal_reconstructed, linestyle="dashed", label="Zrekonstruowany sygnał")
+plt.plot(t, reconstructedSignal, linestyle="dashed", label="Zrekonstruowany sygnał")
 plt.xlabel("Czas (s)")
 plt.ylabel("Amplituda")
-plt.title("Porównanie sygnału oryginalnego i po IDFT")
+plt.title("Porównanie sygnału oryginalnego i sygnału po odwrotnej transformacie Fouriera")
 plt.legend()
 plt.grid()
 plt.show()
 
 # Różnica sygnałów
-difference = signal - signal_reconstructed
+difference = signal - reconstructedSignal
 
 plt.figure(figsize=(12, 4))
 plt.plot(t, difference, label="Różnica sygnałów")
