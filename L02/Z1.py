@@ -1,20 +1,24 @@
-from PIL import Image, ImageOps
-import numpy as np
-import matplotlib.pyplot as plt
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
 
-def load_and_display_image(filename):
+
+#ZADANIE1###############################################################################################################
+
+def loadAndDisplayImage(filename):
     image = Image.open(filename).convert('L')
     image.show()
     return np.array(image)
 
+#ZADANIE2###############################################################################################################
 
-def plot_gray_level_profile(image, coord, orientation='horizontal'):
+def plotGrayLevels(image, coordinates, orientation='horizontal'):
     if orientation == 'horizontal':
-        profile = image[coord, :]
+        profile = image[coordinates, :]
     else:
-        profile = image[:, coord]
+        profile = image[:, coordinates]
 
     plt.plot(profile, 'k-')
     plt.title(f'Profil poziomu szarości ({orientation})')
@@ -22,8 +26,9 @@ def plot_gray_level_profile(image, coord, orientation='horizontal'):
     plt.ylabel('Poziom szarości')
     plt.show()
 
+#ZADANIE3###############################################################################################################
 
-def select_and_save_subimage(image, x1, y1, x2, y2, output_filename):
+def cropImage(image, x1, y1, x2, y2, outputFilename):
     height, width = image.shape
     x1, y1 = max(0, x1), max(0, y1)
     x2, y2 = min(width, x2), min(height, y2)
@@ -32,34 +37,37 @@ def select_and_save_subimage(image, x1, y1, x2, y2, output_filename):
         print("Błąd: Niepoprawne współrzędne podobszaru.")
         return
 
-    sub_image = Image.fromarray(image[y1:y2, x1:x2])
-    output_path = os.path.join(os.getcwd(), output_filename)
-    sub_image.save(output_path)
-    print(f"Podobraz zapisany jako: {output_path}")
-    sub_image.show()
+    croppedImage = Image.fromarray(image[y1:y2, x1:x2])
+    croppedImagePath = os.path.join(os.getcwd(), outputFilename)
+    croppedImage.save(croppedImagePath)
+    print(f"Podobraz zapisany jako: {croppedImagePath}")
+    croppedImage.show()
 
 
-def transformation_T(image, func):
-    vectorized_func = np.vectorize(func)
-    transformed_image = vectorized_func(image).astype(np.uint8)
-    transformed_pil = Image.fromarray(transformed_image)
-    transformed_pil.show()
-    return transformed_image
-
+def transformationT(image, function):
+    # Wektoryzuje podaną funkcję, umożliwiając jej zastosowanie do każdego elementu tablicy
+    vectorizedFunction = np.vectorize(function)
+    # Stosuje funkcję do każdego piksela obrazu i konwertuje wynik do 8-bitowych wartości całkowitych
+    imageTransformed = vectorizedFunction(image).astype(np.uint8)
+    # Tworzy obiekt obrazu PIL z przekształconej tablicy
+    transformedImageToDisplay = Image.fromarray(imageTransformed)
+    transformedImageToDisplay.show()
+    # Zwraca przekształconą tablicę
+    return imageTransformed
 
 if __name__ == "__main__":
     filename = input("Podaj nazwę pliku obrazu: ")
-    image = load_and_display_image("./Images/" + filename)
+    image = loadAndDisplayImage("./Images/" + filename)
 
     if image is not None:
-        coord = int(input("Podaj współrzędną dla wykresu poziomu szarości: "))
+        coordinates = int(input("Podaj współrzędną dla wykresu poziomu szarości: "))
         orientation = input("Podaj orientację (horizontal/vertical): ")
-        plot_gray_level_profile(image, coord, orientation)
+        plotGrayLevels(image, coordinates, orientation)
 
         x1, y1 = map(int, input("Podaj współrzędne (x1, y1) lewego górnego rogu podobszaru: ").split())
         x2, y2 = map(int, input("Podaj współrzędne (x2, y2) prawego dolnego rogu podobszaru: ").split())
-        output_filename = input("Podaj nazwę pliku dla zapisanego podobszaru: ")
-        select_and_save_subimage(image, x1, y1, x2, y2, output_filename)
+        outputFilename = input("Podaj nazwę pliku dla zapisanego podobszaru: ")
+        cropImage(image, x1, y1, x2, y2, outputFilename)
 
         print("Przekształcenie obrazu: T(r) = 255 - r")
-        transformed_image = transformation_T(image, lambda r: 255 - r)
+        imageAfterTransformationT = transformationT(image, lambda r: 255 - r)
