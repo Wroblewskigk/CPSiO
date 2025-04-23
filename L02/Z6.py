@@ -1,73 +1,83 @@
-import os
-
-import matplotlib.pyplot as plt
+import math
 import numpy as np
 from PIL import Image
+from matplotlib import pyplot as plt
 
 
 #ZADANIE1###############################################################################################################
 
-def loadAndDisplayImage(filename):
-    image = Image.open(filename).convert('L')
-    image.show()
-    return np.array(image)
+def multiply_constant(image_path, c):
+    img = Image.open(image_path)
+    img = img.convert('L')  # Konwersja do skali szarości
+
+    # Tworzenie tablicy LUT
+    lut = [min(int(i * c), 255) for i in range(256)]
+
+    return img.point(lut)
+
+
+# Przykład użycia
+result = multiply_constant('chest_xray.tif', 1.5)
+result.show()
 
 #ZADANIE2###############################################################################################################
 
-def plotGrayLevels(image, coordinates, orientation='horizontal'):
-    if orientation == 'horizontal':
-        profile = image[coordinates, :]
-    else:
-        profile = image[:, coordinates]
+def log_transform(image_path):
+    img = Image.open(image_path)
+    max_pixel = 255
+    c = 255 / math.log(1 + max_pixel)
 
-    plt.plot(profile, 'k-')
-    plt.title(f'Profil poziomu szarości ({orientation})')
-    plt.xlabel('Pozycja piksela')
-    plt.ylabel('Poziom szarości')
-    plt.show()
+    lut = [int(c * math.log(1 + i)) for i in range(256)]
+
+    return img.point(lut)
+
+
+# Przykład użycia
+log_image = log_transform('spectrum.tif')
+log_image.show()
 
 #ZADANIE3###############################################################################################################
 
-def cropImage(image, x1, y1, x2, y2, outputFilename):
-    height, width = image.shape
-    x1, y1 = max(0, x1), max(0, y1)
-    x2, y2 = min(width, x2), min(height, y2)
+def contrast_transform(r, m=0.45, e=8):
+    return 1 / (1 + (m / (r / 255)) ** e) * 255
 
-    if x1 >= x2 or y1 >= y2:
-        print("Błąd: Niepoprawne współrzędne podobszaru.")
-        return
+# Wykres transformacji
+x = np.linspace(1, 255, 255)
+y = np.array([contrast_transform(xi) for xi in x])
+plt.plot(x, y)
+plt.title('Funkcja zmiany kontrastu')
+plt.show()
 
-    croppedImage = Image.fromarray(image[y1:y2, x1:x2])
-    croppedImagePath = os.path.join(os.getcwd(), outputFilename)
-    croppedImage.save(croppedImagePath)
-    print(f"Podobraz zapisany jako: {croppedImagePath}")
-    croppedImage.show()
+# Implementacja na obrazie
+def apply_contrast(image_path, m=0.45, e=8):
+    img = Image.open(image_path)
+    pixels = img.load()
 
+    for i in range(img.width):
+        for j in range(img.height):
+            r = pixels[i, j]
+            pixels[i, j] = int(contrast_transform(r, m, e))
 
-def transformationT(image, function):
-    # Wektoryzuje podaną funkcję, umożliwiając jej zastosowanie do każdego elementu tablicy
-    vectorizedFunction = np.vectorize(function)
-    # Stosuje funkcję do każdego piksela obrazu i konwertuje wynik do 8-bitowych wartości całkowitych
-    imageTransformed = vectorizedFunction(image).astype(np.uint8)
-    # Tworzy obiekt obrazu PIL z przekształconej tablicy
-    transformedImageToDisplay = Image.fromarray(imageTransformed)
-    transformedImageToDisplay.show()
-    # Zwraca przekształconą tablicę
-    return imageTransformed
+    return img
 
-if __name__ == "__main__":
-    filename = input("Podaj nazwę pliku obrazu: ")
-    image = loadAndDisplayImage("./Images/" + filename)
+#ZADANIE4###############################################################################################################
 
-    if image is not None:
-        coordinates = int(input("Podaj współrzędną dla wykresu poziomu szarości: "))
-        orientation = input("Podaj orientację (horizontal/vertical): ")
-        plotGrayLevels(image, coordinates, orientation)
+def gamma_correction(image_path, gamma=1.0):
+    # Wczytaj obraz i konwertuj do trybu "L" (skala szarości) lub "RGB"
+    img = Image.open(image_path)
+    if img.mode not in ('L', 'RGB'):
+        img = img.convert('RGB')
 
-        x1, y1 = map(int, input("Podaj współrzędne (x1, y1) lewego górnego rogu podobszaru: ").split())
-        x2, y2 = map(int, input("Podaj współrzędne (x2, y2) prawego dolnego rogu podobszaru: ").split())
-        outputFilename = input("Podaj nazwę pliku dla zapisanego podobszaru: ")
-        cropImage(image, x1, y1, x2, y2, outputFilename)
+    # Oblicz odwrotność gamma
+    inv_gamma = 1.0 / gamma
 
-        print("Przekształcenie obrazu: T(r) = 255 - r")
-        imageAfterTransformationT = transformationT(image, lambda r: 255 - r)
+    # Generuj tablicę LUT
+    lut = np.array([((i / 255.0) ** inv_gamma) * 255
+                    for i in range(256)], dtype=np.uint8)
+
+    # Zastosuj transformację do obrazu
+    return img.point(lut.tolist())
+
+# Przykład użycia
+result = gamma_correction('aerial_view.tif', gamma=0.5)
+result.show()
