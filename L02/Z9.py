@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
-
+#
 
 def apply_average_filter(image, kernel_size):
     pad = kernel_size // 2
