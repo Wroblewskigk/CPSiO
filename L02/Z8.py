@@ -116,35 +116,20 @@ def process_image(image, mask_sizes):
 
 
 # ----------------------------
-# Funkcja główna programu
-# - próba wczytania obrazu
-# - jeśli brak pliku, generuje sztuczny obraz z kołem i szumem
-# - wykonuje przetwarzanie dla podanych rozmiarów masek
-# ----------------------------
+# # Funkcja główna programu
+# # - próba wczytania obrazu
+# # - jeśli brak pliku, generuje sztuczny obraz z kołem i szumem
+# # - wykonuje przetwarzanie dla podanych rozmiarów masek
+# # ----------------------------
 def main():
     try:
         image = Image.open(IMAGE_PATH).convert('L')
         image_np = np.array(image)
     except FileNotFoundError:
-        print(f"Nie znaleziono pliku {IMAGE_PATH}, generuję przykładowy obraz...")
-
-        # Tworzenie pustego obrazu 200x200 pikseli
-        image_np = np.zeros((200, 200), dtype=np.uint8)
-
-        # Rysowanie koła o promieniu 30 pikseli w środku obrazu
-        for i in range(200):
-            for j in range(200):
-                if (i - 100) ** 2 + (j - 100) ** 2 < 900:
-                    image_np[i, j] = 150
-
-        # Dodanie szumu normalnego (średnia=0, std=30)
-        noise = np.random.normal(0, 30, image_np.shape)
-
-        # Dodanie szumu i ograniczenie wartości do [0,255]
-        image_np = np.clip(image_np + noise, 0, 255).astype(np.uint8)
+        print(f"Nie znaleziono pliku {IMAGE_PATH}")
 
     # Lista rozmiarów masek do analizy
-    mask_sizes = [3, 5, 7, 9, 11]
+    mask_sizes = [21]
 
     # Przetworzenie obrazu
     process_image(image_np, mask_sizes)

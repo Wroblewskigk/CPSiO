@@ -36,7 +36,7 @@ def apply_average_filter(image, kernel_size):
 # ----------------------------
 def gaussian_kernel(kernel_size, sigma=1.0):
     # Wektor współrzędnych od -k//2+1 do k//2
-    ax = np.arange(-kernel_size // 2 + 1., kernel_size // 2 + 1.)
+    ax = np.linspace(-(kernel_size-1)/2, (kernel_size-1)/2, kernel_size)
     xx, yy = np.meshgrid(ax, ax)
     # Wzór jądra Gaussa 2D
     kernel = np.exp(-(xx**2 + yy**2) / (2. * sigma**2))
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     output_dir = 'Images-converted-Z10'  # Katalog na wyniki
     os.makedirs(output_dir, exist_ok=True)
 
-    kernel_sizes = [3, 5, 7]       # Rozmiary filtrów
+    kernel_sizes = [3, 7, 11, 19]       # Rozmiary filtrów
     sigmas = [0.5, 1.0, 2.0]       # Odchylenia standardowe Gaussa
     images = ['characters_test_pattern.tif', 'zoneplate.tif']  # Lista plików do przetworzenia
 

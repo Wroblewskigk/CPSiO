@@ -14,18 +14,18 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)  # Utwórz katalog, jeśli nie istnieje
 # --- Filtr Sobela w różnych kierunkach ---
 def sobel_edges(image):
     # Definicja masek Sobela: poziomy, pionowy i dwa ukośne
-    sobel_h = np.array([[-1, -2, -1],
+    sobel_h = np.array([[ 1,  2,  1],
                         [ 0,  0,  0],
-                        [ 1,  2,  1]])
-    sobel_v = np.array([[-1,  0, 1],
-                        [-2,  0, 2],
-                        [-1,  0, 1]])
-    sobel_d1 = np.array([[-2, -1, 0],
-                         [-1,  0, 1],
-                         [ 0,  1, 2]])
-    sobel_d2 = np.array([[ 0,  1, 2],
-                         [-1,  0, 1],
-                         [-2, -1, 0]])
+                        [-1, -2, -1]])
+    sobel_v = np.array([[ 1,  0, -1],
+                        [ 2,  0, -2],
+                        [ 1,  0, -1]])
+    sobel_d1 = np.array([[ 2,  1, 0],
+                         [ 1,  0, -1],
+                         [ 0,  -1, -2]])
+    sobel_d2 = np.array([[ 0,  -1, -2],
+                         [ 1,  0, -1],
+                         [ 2,  1, 0]])
 
     # Nakładanie masek konwolucją oraz pobieranie wartości bezwzględnej
     results = {
@@ -44,10 +44,11 @@ def laplacian_sharpen(image):
     kernel = np.array([[0, -1, 0],
                        [-1, 4, -1],
                        [0, -1, 0]])
-    lap = convolve(image, kernel)  # Wykonanie konwolucji Laplacjana
-    sharp = image - lap            # Odejmujemy Laplacjan od oryginału - wyostrzanie
-    # Ograniczamy zakres i konwertujemy do uint8
-    return np.clip(sharp, 0, 255).astype(np.uint8)
+
+    lap = convolve(image, kernel)     # Wyznaczamy krawędzie (Laplasjan)
+    sharp = image + lap               # Odejmujemy Laplasjan od oryginału -> wyostrzanie
+    return np.clip(sharp, 0, 255).astype(np.uint8)  # Ograniczamy zakres i konwertujemy
+
 
 
 # --- Unsharp mask i High Boost Filtering ---
