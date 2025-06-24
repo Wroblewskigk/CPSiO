@@ -101,18 +101,36 @@ def process_image(image, mask_sizes):
         eq_path = os.path.join(OUTPUT_DIR, f"hidden_eq_{size}x{size}.tif")
         enhanced_path = os.path.join(OUTPUT_DIR, f"hidden_stat_{size}x{size}.tif")
 
-        # Zapis obrazów
+        # Zapis obrazów TIFF
         eq_img.save(eq_path)
         enhanced_img.save(enhanced_path)
         print(f"Zapisano: {eq_path}, {enhanced_path}")
 
-        # Wyświetlanie oryginału i wyników obok siebie
-        plt.figure(figsize=(12, 6))
-        plt.subplot(1, 3, 1), plt.imshow(image, cmap='gray'), plt.title('Oryginał'), plt.axis('off')
-        plt.subplot(1, 3, 2), plt.imshow(eq, cmap='gray'), plt.title(f'Lokalne wyrównanie ({size}x{size})'), plt.axis('off')
-        plt.subplot(1, 3, 3), plt.imshow(enhanced, cmap='gray'), plt.title(f'Poprawa statystyczna ({size}x{size})'), plt.axis('off')
-        plt.tight_layout()
-        plt.show()
+        # Tworzenie wykresu tylko z obrazami (bez histogramów)
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+        axes[0].imshow(image, cmap='gray', vmin=0, vmax=255)
+        axes[0].set_title('Oryginał')
+        axes[0].axis('off')
+
+        axes[1].imshow(eq, cmap='gray', vmin=0, vmax=255)
+        axes[1].set_title(f'Lokalne wyrównanie ({size}x{size})')
+        axes[1].axis('off')
+
+        axes[2].imshow(enhanced, cmap='gray', vmin=0, vmax=255)
+        axes[2].set_title(f'Poprawa statystyczna ({size}x{size})')
+        axes[2].axis('off')
+
+        plt.suptitle(f'Porównanie metod - maska {size}x{size}')
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+        # Zapis wykresu jako PNG
+        comparison_path = os.path.join(OUTPUT_DIR, f"comparison_mask_{size}x{size}.png")
+        plt.savefig(comparison_path)
+        plt.close(fig)
+
+        print(f"Zapisano wykres porównawczy: {comparison_path}")
+
 
 
 # ----------------------------
@@ -129,7 +147,7 @@ def main():
         print(f"Nie znaleziono pliku {IMAGE_PATH}")
 
     # Lista rozmiarów masek do analizy
-    mask_sizes = [21]
+    mask_sizes = [9, 13, 17, 21]
 
     # Przetworzenie obrazu
     process_image(image_np, mask_sizes)

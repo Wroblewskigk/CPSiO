@@ -52,11 +52,11 @@ def equalize_histogram(img_array):
 # equalized - wyrównany obraz jako tablica NumPy
 # title - tytuł wykresu (zazwyczaj nazwa pliku)
 # ----------------------------
-def plot_histograms(original, equalized, title):
+def plot_histograms(original, equalized, title, output_path=None):
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
 
     # Oryginalny obraz
-    axes[0, 0].imshow(original, cmap='gray')
+    axes[0, 0].imshow(original, cmap='gray', vmin=0, vmax=255)
     axes[0, 0].set_title('Oryginał')
     axes[0, 0].axis('off')
 
@@ -65,7 +65,7 @@ def plot_histograms(original, equalized, title):
     axes[0, 1].set_title('Histogram oryginału')
 
     # Obraz po wyrównaniu
-    axes[1, 0].imshow(equalized, cmap='gray')
+    axes[1, 0].imshow(equalized, cmap='gray', vmin=0, vmax=255)
     axes[1, 0].set_title('Po wyrównaniu')
     axes[1, 0].axis('off')
 
@@ -75,8 +75,16 @@ def plot_histograms(original, equalized, title):
 
     # Tytuł całego wykresu
     fig.suptitle(f'Wyrównanie histogramu: {title}')
-    plt.tight_layout()
-    plt.show()
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Zostaw miejsce na suptitle
+
+    if output_path:
+        plt.savefig(output_path, dpi=300)
+        plt.close(fig)
+        print(f"Zapisano wykres porównawczy: {output_path}")
+    else:
+        plt.show()
+
+
 
 
 # ----------------------------
@@ -87,35 +95,29 @@ def plot_histograms(original, equalized, title):
 # - zapis wyniku do pliku
 # ----------------------------
 def process_image(filename):
-    # Ścieżka do pliku
     image_path = os.path.join(IMAGE_DIR, filename)
-
-    # Wczytanie i konwersja do skali szarości
     img = Image.open(image_path).convert('L')
-
-    # Konwersja do tablicy NumPy
     img_array = np.array(img)
-
-    # Wyrównanie histogramu
     img_eq_array = equalize_histogram(img_array)
 
-    # Wyświetlenie wykresów obrazów i histogramów
-    plot_histograms(img_array, img_eq_array, filename)
-
-    # Konwersja wyniku do obiektu Image i zapis do pliku
-    img_eq = Image.fromarray(img_eq_array)
+    # Ścieżka do zapisu wykresu porównawczego
     name, _ = os.path.splitext(filename)
+    plot_output_path = os.path.join(OUTPUT_DIR, f"{name}_comparison.png")
+
+    plot_histograms(img_array, img_eq_array, filename, output_path=plot_output_path)
+
+    img_eq = Image.fromarray(img_eq_array)
     output_path = os.path.join(OUTPUT_DIR, f"{name}_equalized.tif")
     img_eq.save(output_path)
-
     print(f"Zapisano wyrównany obraz: {output_path}")
+
 
 
 # ----------------------------
 # Lista plików obrazów do przetworzenia
 # ----------------------------
 images = [
-    'chest_xray.tif',
+    'chest-xray.tif',
     'pollen-dark.tif',
     'pollen-ligt.tif',
     'pollen-lowcontrast.tif',

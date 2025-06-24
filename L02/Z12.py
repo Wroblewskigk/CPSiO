@@ -69,9 +69,13 @@ def enhance_bonescan(image_path):
         plt.imshow(img, cmap='gray')
         plt.title(label)
         plt.axis('off')
-        save_image(img, f"Z12_{label.replace(' ', '_')}.tif")  # Zapis na dysk
+        save_image(img, f"Z12_{label.replace(' ', '_')}.tif")  # Zapis pojedynczego obrazu
+
     plt.tight_layout()
+    # Zapis całej figury do pliku
+    plt.savefig(os.path.join(OUTPUT_DIR, f"Z12_steps_combined.png"))
     plt.show()
+
 
 # Uruchomienie przetwarzania jeśli plik jest głównym modułem
 if __name__ == "__main__":

@@ -5,132 +5,85 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import os
 
-# ----------------------------
-# Filtr uśredniający (średnia arytmetyczna w oknie)
-# image - tablica obrazu (2D)
-# kernel_size - rozmiar okna filtru (np. 3, 5, 7)
-# Zwraca obraz po filtracji jako uint8
-# ----------------------------
 def apply_average_filter(image, kernel_size):
     pad = kernel_size // 2
-    # Dopełnienie obrazu odbiciem brzegów, aby filtry działały na krawędziach
     padded = np.pad(image, pad, mode='reflect')
-    filtered = np.zeros_like(image, dtype=np.float32)  # float, by uśrednianie było precyzyjne
-
-    # Przechodzimy po każdym pikselu oryginału
+    filtered = np.zeros_like(image, dtype=np.float32)
     for i in range(image.shape[0]):
         for j in range(image.shape[1]):
-            # Wycinamy lokalne okno (kernel_size x kernel_size)
             window = padded[i:i+kernel_size, j:j+kernel_size]
-            # Obliczamy średnią wartość w oknie
             filtered[i, j] = np.mean(window)
+    return filtered.astype(np.uint8)
 
-    return filtered.astype(np.uint8)  # Konwersja do uint8
-
-
-# ----------------------------
-# Funkcja generująca jądro Gaussa
-# kernel_size - rozmiar jądra (np. 3, 5, 7)
-# sigma - odchylenie standardowe Gaussa
-# Zwraca macierz jądra Gaussa (kernel_size x kernel_size) zsumowaną do 1
-# ----------------------------
 def gaussian_kernel(kernel_size, sigma=1.0):
-    # Wektor współrzędnych od -k//2+1 do k//2
     ax = np.linspace(-(kernel_size-1)/2, (kernel_size-1)/2, kernel_size)
     xx, yy = np.meshgrid(ax, ax)
-    # Wzór jądra Gaussa 2D
     kernel = np.exp(-(xx**2 + yy**2) / (2. * sigma**2))
-    # Normalizacja, by suma elementów wyniosła 1
     kernel /= np.sum(kernel)
     return kernel
 
-
-# ----------------------------
-# Filtr Gaussa
-# image - obraz do przefiltrowania (2D)
-# kernel_size - rozmiar jądra Gaussa
-# sigma - odchylenie standardowe Gaussa
-# Zwraca przefiltrowany obraz uint8
-# ----------------------------
 def apply_gaussian_filter(image, kernel_size, sigma=1.0):
-    # Generujemy jądro Gaussa
     kernel = gaussian_kernel(kernel_size, sigma)
     pad = kernel_size // 2
     padded = np.pad(image, pad, mode='reflect')
     filtered = np.zeros_like(image, dtype=np.float32)
-
-    # Nakładamy jądro na każdy piksel
     for i in range(image.shape[0]):
         for j in range(image.shape[1]):
             window = padded[i:i+kernel_size, j:j+kernel_size]
-            # Mnożenie elementów i sumowanie
             filtered[i, j] = np.sum(window * kernel)
-
     return filtered.astype(np.uint8)
 
+def plot_and_save_grid(image, kernel_sizes, sigmas, image_name, output_dir):
+    rows = len(kernel_sizes)
+    cols = 2 + len(sigmas)  # Oryginał + filtr średni + filtry Gaussa dla każdej sigma
 
-# ----------------------------
-# Funkcja zapisująca obraz do pliku
-# array - tablica obrazu
-# output_path - ścieżka do pliku wyjściowego
-# ----------------------------
-def save_image(array, output_path):
-    Image.fromarray(array).save(output_path)
+    plt.figure(figsize=(4*cols, 4*rows))
 
-
-# ----------------------------
-# Główna funkcja:
-# - wczytuje obraz
-# - dla każdej maski aplikuje filtr uśredniający i filtry Gaussa dla różnych sigma
-# - zapisuje wyniki do plików
-# - wyświetla oryginał i wyniki filtracji
-# ----------------------------
-def show_and_save_filters(image_path, kernel_sizes, sigmas, output_dir):
-    image_name = os.path.splitext(os.path.basename(image_path))[0]
-    image = np.array(Image.open(image_path).convert('L'))  # Wczytanie obrazu w skali szarości
-
-    for ksize in kernel_sizes:
-        # Filtr uśredniający
+    for row_idx, ksize in enumerate(kernel_sizes):
         avg_filtered = apply_average_filter(image, ksize)
-        avg_filename = f"{image_name}_avg_{ksize}x{ksize}.tif"
-        save_image(avg_filtered, os.path.join(output_dir, avg_filename))
-
-        for sigma in sigmas:
-            # Filtr Gaussa
-            gauss_filtered = apply_gaussian_filter(image, ksize, sigma)
-            gauss_filename = f"{image_name}_gauss_{ksize}x{ksize}_sigma{sigma}.tif"
-            save_image(gauss_filtered, os.path.join(output_dir, gauss_filename))
-
-            # Wyświetlanie wyników: oryginał, filtr uśredniający, filtr Gaussa
-            plt.figure(figsize=(12,4))
-            plt.subplot(1,3,1)
-            plt.imshow(image, cmap='gray')
+        # Kolumna 0: oryginał (tylko w pierwszym wierszu, żeby nie dublować)
+        plt.subplot(rows, cols, row_idx*cols + 1)
+        plt.imshow(image, cmap='gray')
+        if row_idx == 0:
             plt.title('Oryginał')
-            plt.axis('off')
+        plt.axis('off')
 
-            plt.subplot(1,3,2)
-            plt.imshow(avg_filtered, cmap='gray')
-            plt.title(f'Uśredniający {ksize}x{ksize}')
-            plt.axis('off')
+        # Kolumna 1: filtr uśredniający
+        plt.subplot(rows, cols, row_idx*cols + 2)
+        plt.imshow(avg_filtered, cmap='gray')
+        plt.title(f'Uśredniający {ksize}x{ksize}')
+        plt.axis('off')
 
-            plt.subplot(1,3,3)
+        # Kolumny 2+: filtry Gaussa dla każdego sigma
+        for col_idx, sigma in enumerate(sigmas):
+            gauss_filtered = apply_gaussian_filter(image, ksize, sigma)
+            plt.subplot(rows, cols, row_idx*cols + 3 + col_idx)
             plt.imshow(gauss_filtered, cmap='gray')
-            plt.title(f'Gauss {ksize}x{ksize}, σ={sigma}')
+            if row_idx == 0:
+                plt.title(f'Gauss σ={sigma}')
             plt.axis('off')
 
-            plt.tight_layout()
-            plt.show()
+    plt.tight_layout()
+    filename = f"{image_name}_comparison_grid.png"
+    plt.savefig(os.path.join(output_dir, filename))
+    plt.close()
 
-
-if __name__ == "__main__":
-    input_dir = 'Images'           # Katalog z obrazami wejściowymi
-    output_dir = 'Images-converted-Z10'  # Katalog na wyniki
+def process_images_grid(input_dir, output_dir, kernel_sizes, sigmas, image_files):
     os.makedirs(output_dir, exist_ok=True)
 
-    kernel_sizes = [3, 7, 11, 19]       # Rozmiary filtrów
-    sigmas = [0.5, 1.0, 2.0]       # Odchylenia standardowe Gaussa
-    images = ['characters_test_pattern.tif', 'zoneplate.tif']  # Lista plików do przetworzenia
+    for image_file in image_files:
+        print(f'Przetwarzanie obrazu: {image_file}')
+        image_path = os.path.join(input_dir, image_file)
+        image_name = os.path.splitext(image_file)[0]
+        image = np.array(Image.open(image_path).convert('L'))
 
-    for img_name in images:
-        print(f'Przetwarzanie obrazu: {img_name}')
-        show_and_save_filters(os.path.join(input_dir, img_name), kernel_sizes, sigmas, output_dir)
+        plot_and_save_grid(image, kernel_sizes, sigmas, image_name, output_dir)
+
+if __name__ == "__main__":
+    input_dir = 'Images'
+    output_dir = 'Images-converted-Z10'
+    kernel_sizes = [3, 7, 11, 19]
+    sigmas = [0.5, 1.0, 2.0]
+    images = ['characters_test_pattern.tif', 'zoneplate.tif']
+
+    process_images_grid(input_dir, output_dir, kernel_sizes, sigmas, images)

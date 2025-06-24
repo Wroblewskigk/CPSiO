@@ -99,14 +99,20 @@ def plot_results(results, title, image_name):
         plt.title(label)
         plt.axis('off')
 
-        # Zapisujemy każdy obraz poza oryginałem
+        # Zapisujemy każdy obraz osobno poza oryginałem
         if label != 'Oryginał':
             fname = f"{image_name}_{label.replace(' ', '_')}.tif"
             Image.fromarray(img).save(os.path.join(OUTPUT_DIR, fname))
 
     plt.suptitle(title)
     plt.tight_layout()
+
+    # Zapis całej figury (widocznego układu podwykresów) jako PNG
+    fig_filename = f"{image_name}_comparison_grid.png"
+    plt.savefig(os.path.join(OUTPUT_DIR, fig_filename), dpi=300)
+
     plt.show()
+
 
 
 # --- Główna część programu ---
