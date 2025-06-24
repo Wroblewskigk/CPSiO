@@ -6,111 +6,104 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-# ----------------------------
-# Ścieżki do folderów na obrazy wejściowe i wynikowe
-# ----------------------------
 IMAGE_DIR = './Images'
 OUTPUT_DIR = './Images-converted-Z6'
-
-# Utworzenie folderu na wyniki, jeśli nie istnieje
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# ----------------------------
-# Funkcja wczytująca obraz i konwertująca go do skali szarości
-# ----------------------------
-def load_grayscale_image(filename):
+def load_image_as_array(filename):
     path = os.path.join(IMAGE_DIR, filename)
-    img = Image.open(path).convert('L')  # Konwersja do skali szarości (L)
-    return img
+    img = Image.open(path).convert('L')
+    return np.array(img, dtype=np.uint8)
 
-# ----------------------------
-# Funkcja zapisu obrazu z dopiskiem suffix do nazwy pliku
-# ----------------------------
-def save_image(image, original_name, suffix):
-    name, _ = os.path.splitext(original_name)  # Oddzielenie nazwy od rozszerzenia
-    save_path = os.path.join(OUTPUT_DIR, f"{name}_{suffix}.tif")
-    image.save(save_path)
-    print(f"Zapisano: {save_path}")
+def save_comparison(original_array, processed_array, original_name, suffix):
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+    axes[0].imshow(original_array, cmap='gray', vmin=0, vmax=255)
+    axes[0].set_title('Oryginał')
+    axes[0].axis('off')
+    axes[1].imshow(processed_array, cmap='gray', vmin=0, vmax=255)
+    axes[1].set_title(f'Przetworzony ({suffix})')
+    axes[1].axis('off')
+    plt.tight_layout()
 
-# ----------------------------
-# ZADANIE 6a: Mnożenie obrazu przez stałą c
-# Tworzy LUT (Look-Up Table) i nakłada na obraz, ograniczając max do 255
-# ----------------------------
-def multiply_constant(image, c):
-    lut = [min(int(i * c), 255) for i in range(256)]
-    return image.point(lut)
+    save_path = os.path.join(OUTPUT_DIR, f"{os.path.splitext(original_name)[0]}_{suffix}_comparison.png")
+    plt.savefig(save_path)
+    plt.show()
+    plt.close(fig)
+    print(f"Zapisano porównanie: {save_path}")
 
-# ----------------------------
-# ZADANIE 6b: Transformacja logarytmiczna
-# ----------------------------
-def log_transform(image):
-    c = 255 / math.log(1 + 255)  # Normalizacja stałej c
-    lut = [int(c * math.log(1 + i)) for i in range(256)]  # LUT oparty na funkcji logarytmicznej
-    return image.point(lut)
+def multiply_constant_np(img_array, c):
+    result = np.clip(img_array * c, 0, 255).astype(np.uint8)
+    return result
 
-# ----------------------------
-# ZADANIE 6c: Transformacja kontrastu
-# Funkcja pomocnicza do obliczania pojedynczej wartości kontrastu
-# r_norm to poziom szarości znormalizowany do [0,1]
-# ----------------------------
-def contrast_transform_value(r, m=0.45, e=8):
+def log_transform_np(img_array):
+    c = 255 / math.log(1 + 255)
+    # Konwersja do float, aby uniknąć problemów z int i log
+    img_float = img_array.astype(np.float32)
+    # Dodanie epsilon, by uniknąć log(0)
+    epsilon = 1e-10
+    result = c * np.log(1 + img_float + epsilon)
+    result = np.clip(result, 0, 255).astype(np.uint8)
+    return result
+
+
+def contrast_transform_value_np(r, m=0.45, e=8):
     r_norm = r / 255
-    # Funkcja kontrastu oparta na wzorze logistycznym, zwraca wartość w zakresie 0-255
     return int((1 / (1 + (m / r_norm) ** e)) * 255) if r > 0 else 0
 
-# Funkcja nakładająca transformację kontrastu na cały obraz przez LUT
-def contrast_transform(image, m=0.45, e=8):
-    lut = [contrast_transform_value(r, m, e) for r in range(256)]
-    return image.point(lut)
+def contrast_transform_np(img_array, m=0.45, e=8):
+    lut = np.array([contrast_transform_value_np(r, m, e) for r in range(256)], dtype=np.uint8)
+    result = lut[img_array]
+    return result
 
-# ----------------------------
-# Korekcja gamma
-# Przyjmuje gamma i tworzy LUT z korektą gamma
-# ----------------------------
-def gamma_correction(image, gamma=1.0):
-    inv_gamma = 1.0 / gamma
-    lut = [int(((i / 255.0) ** inv_gamma) * 255) for i in range(256)]
-    return image.point(lut)
+def plot_contrast_function(m=0.45, e=8, output_path=None):
+    import numpy as np
+    import matplotlib.pyplot as plt
 
-# ----------------------------
-# Funkcja wyświetlająca wykres funkcji transformacji kontrastu
-# ----------------------------
-def plot_contrast_function(m=0.45, e=8):
-    x = np.linspace(1, 255, 255)  # Zakres wejściowy poziomów szarości (bez 0)
-    y = [contrast_transform_value(xi, m, e) for xi in x]
-    plt.plot(x, y)
-    plt.title('Funkcja transformacji kontrastu')
+    x = np.arange(256)
+    y = np.array([contrast_transform_value_np(r, m, e) for r in x])
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(x, y, label=f'T(r), m={m}, e={e}')
+    plt.title('Funkcja transformacji kontrastu T(r)')
     plt.xlabel('Poziom wejściowy r')
-    plt.ylabel('Poziom wyjściowy s')
+    plt.ylabel('Poziom wyjściowy T(r)')
     plt.grid(True)
-    plt.show()
+    plt.legend()
 
-# ----------------------------
-# Główna część programu
-# Wykonuje wszystkie transformacje dla wybranych obrazów
-# ----------------------------
+    if output_path:
+        plt.savefig(output_path, dpi=300)
+        plt.close()
+        print(f"Zapisano wykres funkcji kontrastu: {output_path}")
+    else:
+        plt.show()
+
+
+def gamma_correction_np(img_array, gamma=1.0):
+    inv_gamma = 1.0 / gamma
+    lut = np.array([((i / 255.0) ** inv_gamma) * 255 for i in range(256)], dtype=np.uint8)
+    result = lut[img_array]
+    return result
+
 if __name__ == "__main__":
-    # Mnożenie obrazu przez stałą c=1.5
+    # Mnożenie przez 1.5
     for fname in ['chest-xray.tif', 'pollen-dark.tif', 'spectrum.tif']:
-        img = load_grayscale_image(fname)
-        result = multiply_constant(img, c=1.5)
-        result.show(title=f"{fname} * 1.5")
-        save_image(result, fname, "multiply1.5")
+        original = load_image_as_array(fname)
+        processed = multiply_constant_np(original, 1.5)
+        save_comparison(original, processed, fname, "multiply1.5")
 
-    # Transformacja logarytmiczna na obrazie 'spectrum.tif'
-    spectrum = load_grayscale_image('spectrum.tif')
-    log_img = log_transform(spectrum)
-    log_img.show(title="Log transform")
-    save_image(log_img, 'spectrum.tif', "log")
+    # Log transformacja
+    spectrum = load_image_as_array('spectrum.tif')
+    log_img = log_transform_np(spectrum)
+    save_comparison(spectrum, log_img, 'spectrum.tif', 'log')
 
-    # Transformacja kontrastu - wykres i zastosowanie na 'spectrum.tif'
-    plot_contrast_function()
-    contrast_img = contrast_transform(spectrum)
-    contrast_img.show(title="Contrast transform")
-    save_image(contrast_img, 'spectrum.tif', "contrast")
+    # Transformacja kontrastu
+    for fname in ['chest-xray.tif', 'einstein-low-contrast.tif', 'pollen-lowcontrast.tif']:
+        original = load_image_as_array(fname)
+        contrast_img = contrast_transform_np(original)
+        save_comparison(original, contrast_img, fname, 'contrast')
+    plot_contrast_function(output_path=os.path.join(OUTPUT_DIR, 'contrast_function.png'))
 
-    # Korekcja gamma na obrazie 'aerial_view.tif' z gamma=0.5
-    aerial = load_grayscale_image('aerial_view.tif')
-    gamma_img = gamma_correction(aerial, gamma=0.5)
-    gamma_img.show(title="Gamma correction")
-    save_image(gamma_img, 'aerial_view.tif', "gamma0.5")
+    # Korekcja gamma
+    aerial = load_image_as_array('aerial_view.tif')
+    gamma_img = gamma_correction_np(aerial, gamma=0.5)
+    save_comparison(aerial, gamma_img, 'aerial_view.tif', 'gamma0.5')
